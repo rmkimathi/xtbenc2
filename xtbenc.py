@@ -94,8 +94,8 @@ while True:
 
 	myargs = values['_editor_']
 
-	ffp2 = ['ffprobe', '-hide_banner', video_in]
-	ffp5 = ['ffprobe', '-hide_banner', video_out]
+	ffp1 = ['ffprobe', '-hide_banner', video_in]
+	ffp2 = ['ffprobe', '-hide_banner', video_out]
 
 
 	cmd1 = [] # Radio button selection
@@ -125,11 +125,11 @@ while True:
 
 		print('MEDIA INFO (Input):')
 
-		ffp1 = subprocess.Popen(ffp2, stderr=subprocess.PIPE, universal_newlines=True)
+		ffp3 = subprocess.Popen(ffp1, stderr=subprocess.PIPE, universal_newlines=True)
 
-		ffp3 = ffp1.communicate()[1]
+		ffp4 = ffp3.communicate()[1]
 
-		print(ffp3)
+		print(ffp4)
 
 
 
@@ -137,9 +137,9 @@ while True:
 
 		print('MEDIA INFO (Output):')
 
-		ffp4 = subprocess.Popen(ffp5, stderr=subprocess.PIPE, universal_newlines=True)
+		ffp5 = subprocess.Popen(ffp2, stderr=subprocess.PIPE, universal_newlines=True)
 
-		ffp6 = ffp4.communicate()[1]
+		ffp6 = ffp5.communicate()[1]
 
 		print(ffp6)
 
@@ -161,11 +161,11 @@ while True:
 
 		window.refresh()
 
-		cmd3 = os.system(cmd1)
+		cmd2 = os.system(cmd1)
 
 		print()
 
-		print("Process ran with exit code %d" % cmd3)
+		print("Process ran with exit code %d" % cmd2)
 
 		print( )
 
