@@ -6,7 +6,6 @@
 import PySimpleGUI as sg
 import subprocess
 import csv
-import os
 
 
 sg.ChangeLookAndFeel('LightGreen')
@@ -57,7 +56,8 @@ layout = [
     ], title='Extra Options (after input):')],
     
     [sg.Button('ffprobe_in'),
-     sg.Button('ffprobe_out')],
+     sg.Button('ffprobe_out'),
+     sg.Button('encoders')],
     
     [sg.Frame(layout=[
         [sg.Output(size=(130, 20))]], title='LOG')],
@@ -96,6 +96,8 @@ while True:
 
 	ffp1 = ['ffprobe', '-hide_banner', video_in]
 	ffp2 = ['ffprobe', '-hide_banner', video_out]
+
+	ffm1 = ['ffmpeg', '-hide_banner', '-encoders']
 
 
 	cmd1 = [] # Radio button selection
@@ -141,6 +143,14 @@ while True:
 
 
 
+	if event == 'encoders':
+
+		ffm2 = subprocess.run(ffm1, stdout=subprocess.PIPE, text=True)
+
+		print(ffm2.stdout)
+
+
+
 	if event == 'Convert':
 
 		print('INPUT:', video_in)
@@ -157,15 +167,15 @@ while True:
 
 		window.refresh()
 
-		p1 = os.system(cmd1)
+		p1 = subprocess.run(cmd1, shell=True)
 
 		print()
 
-		print("Process ran with exit code %d" % p1)
+		print('returncode:', p1.returncode)
 
 		print( )
 
-		print('**********     RESULT     **********')
+		print('**********')
 
 		print( )
 
