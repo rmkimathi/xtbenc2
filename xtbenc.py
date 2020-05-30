@@ -125,11 +125,9 @@ while True:
 
 		print('MEDIA INFO (Input):')
 
-		ffp3 = subprocess.Popen(ffp1, stderr=subprocess.PIPE, universal_newlines=True)
+		ffp3 = subprocess.run(ffp1, stderr=subprocess.PIPE, text=True)
 
-		ffp4 = ffp3.communicate()[1]
-
-		print(ffp4)
+		print(ffp3.stderr)
 
 
 
@@ -137,11 +135,9 @@ while True:
 
 		print('MEDIA INFO (Output):')
 
-		ffp5 = subprocess.Popen(ffp2, stderr=subprocess.PIPE, universal_newlines=True)
+		ffp4 = subprocess.run(ffp2, stderr=subprocess.PIPE, text=True)
 
-		ffp6 = ffp5.communicate()[1]
-
-		print(ffp6)
+		print(ffp4.stderr)
 
 
 
