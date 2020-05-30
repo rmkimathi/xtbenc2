@@ -161,11 +161,11 @@ while True:
 
 		window.refresh()
 
-		cmd2 = os.system(cmd1)
+		p1 = os.system(cmd1)
 
 		print()
 
-		print("Process ran with exit code %d" % cmd2)
+		print("Process ran with exit code %d" % p1)
 
 		print( )
 
