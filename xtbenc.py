@@ -130,7 +130,12 @@ while True:
 		ffp3 = subprocess.run(ffp1, stderr=subprocess.PIPE, text=True)
 
 		print(ffp3.stderr)
+		
+		print( )
 
+		print('**********')
+
+		print( )
 
 
 	if event == 'ffprobe_out':
@@ -140,7 +145,12 @@ while True:
 		ffp4 = subprocess.run(ffp2, stderr=subprocess.PIPE, text=True)
 
 		print(ffp4.stderr)
+		
+		print( )
 
+		print('**********')
+
+		print( )
 
 
 	if event == 'encoders':
@@ -148,7 +158,12 @@ while True:
 		ffm2 = subprocess.run(ffm1, stdout=subprocess.PIPE, text=True)
 
 		print(ffm2.stdout)
+		
+		print( )
 
+		print('**********')
+
+		print( )
 
 
 	if event == 'Convert':
@@ -163,13 +178,13 @@ while True:
 
 		print(cmd1)
 
-		print()
+		print( )
 
 		window.refresh()
 
 		p1 = subprocess.run(cmd1, shell=True)
 
-		print()
+		print( )
 
 		print('returncode:', p1.returncode)
 
