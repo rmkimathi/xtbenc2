@@ -8,12 +8,18 @@ _"(Fast Forward MPEG) An open source multimedia project for working with audio a
 # Resources
 In Ubuntu if you get an error similar to: ImportError: No module named tkinter then you need to install tkinter.
 ```
-python3 -m pip install pysimplegui
 sudo apt install python3-tk
+sudo apt install python3-testresources
 
-python3 -m pip install pyinstaller
-pyinstaller --add-data="presets:presets" xtbenc.py # Ubuntu
-pyinstaller --icon=xtbenc.ico --add-data="presets;presets" xtbenc.py # Windows
+pip install pysimplegui
+
+pip install pyinstaller
+
+# Ubuntu
+pyinstaller --add-data="presets:presets" xtbenc.py
+
+# Windows
+pyinstaller --icon=xtbenc.ico --add-data="presets;presets" xtbenc.py
 ```
 
 # Usage
