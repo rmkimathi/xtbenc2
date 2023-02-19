@@ -11,28 +11,24 @@ import csv
 sg.ChangeLookAndFeel('LightGreen')
 
 
-with open('presets/CPU.csv', newline='') as csvfile:
-    spamreader = csv.reader(csvfile , delimiter=',', quotechar='"')
-    for Tup1 in spamreader:
-       cpu = (Tup1)
+with open('presets/CPU.csv', 'r') as csvfile:
+    csvreader = csv.reader(csvfile)
+    cpu = [row[0] for row in csvreader]
 
 
-with open('presets/QSV.csv', newline='') as csvfile:
-    spamreader = csv.reader(csvfile , delimiter=',', quotechar='"')
-    for Tup2 in spamreader:
-       qsv = (Tup2)
+with open('presets/QSV.csv', 'r') as csvfile:
+    csvreader = csv.reader(csvfile)
+    qsv = [row[0] for row in csvreader]
 
 
-with open('presets/VAAPI.csv', newline='') as csvfile:
-    spamreader = csv.reader(csvfile , delimiter=',', quotechar='"')
-    for Tup3 in spamreader:
-       vaapi = (Tup3)    
+with open('presets/VAAPI.csv', 'r') as csvfile:
+    csvreader = csv.reader(csvfile)
+    vaapi = [row[0] for row in csvreader]
 
 
-with open('presets/NVENC.csv', newline='') as csvfile:
-    spamreader = csv.reader(csvfile , delimiter=',', quotechar='"')
-    for Tup4 in spamreader:
-       nvenc = (Tup4)
+with open('presets/NVENC.csv', 'r') as csvfile:
+    csvreader = csv.reader(csvfile)
+    nvenc = [row[0] for row in csvreader]
 
 
 layout = [
