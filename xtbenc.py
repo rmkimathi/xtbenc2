@@ -52,7 +52,7 @@ layout = [
     layout=[
     [sg.Combo(values=cpu, default_value='', size=(134, 20), auto_size_text=False, key='_editor_')]],
     title='Extra Options (after input):')],
-
+    
     [sg.Frame(
     layout=[
     [sg.Multiline(key='-PREVIEW-', size=(134, 4))]],
@@ -116,12 +116,13 @@ while True:
 
 
     if event == '_CPU': window['_editor_'].Update(values=cpu, set_to_index=0)
-    
+
     if event == '_QSV': window['_editor_'].Update(values=qsv, set_to_index=0)
-    
+
     if event == '_VAAPI': window['_editor_'].Update(values=vaapi, set_to_index=0)
-    
+
     if event == '_NVENC': window['_editor_'].Update(values=nvenc, set_to_index=0)
+
 
 
     if event == 'ffprobe_in':
