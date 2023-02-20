@@ -50,6 +50,9 @@ layout = [
     [sg.Frame(layout=[
         [sg.Combo(values=cpu, default_value='', size=(134, 20), auto_size_text=False, key='_editor_')]
     ], title='Extra Options (after input):')],
+
+	[sg.Frame(layout=[
+        [sg.Multiline(key='-PREVIEW-', size=(134, 4))]], title='Command Line:')],
     
     [sg.Button('ffprobe_in'),
      sg.Button('ffprobe_out'),
@@ -58,8 +61,9 @@ layout = [
     [sg.Frame(layout=[
         [sg.Output(size=(134, 20), font=("Consolas", 10))]], title='LOG')],
     
-    [sg.Button('Convert'),
-     sg.SimpleButton('Exit', button_color=('white','firebrick3'))]
+    [sg.Button('Preview'),
+     sg.Button('Convert'),
+	 sg.SimpleButton('Exit', button_color=('white','firebrick3'))]
 ]
 
 
@@ -162,23 +166,34 @@ while True:
 		print( )
 
 
+	if event == 'Preview':
+
+		ffmpeg_cmd = [cmd1]
+
+		window['-PREVIEW-'].update(' '.join(ffmpeg_cmd))
+
+	
 	if event == 'Convert':
 
 		print('INPUT:', video_in)
 
 		print( )
 
-		print('OUTPUT:', video_out)
-
 		print( )
 
-		print(cmd1)
+		ffmpeg_cmd = [values['-PREVIEW-']]
 
-		print( )
+		print(' '.join(ffmpeg_cmd))
 
 		window.refresh()
 
-		p1 = subprocess.run(cmd1, shell=True)
+		p1 = subprocess.run(' '.join(ffmpeg_cmd), shell=True)
+		
+		# p1 = subprocess.run(ffmpeg_cmd, shell=True)
+
+		print( )
+
+		print( )
 
 		print( )
 
