@@ -56,7 +56,7 @@ layout = [
     [sg.Frame(
     layout=[
     [sg.Multiline(key='-PREVIEW-', size=(134, 4))]],
-    title='Command Line:')],
+    title='Command Line (Preview/Edit):')],
     
     [sg.Button('ffprobe_in'),
     sg.Button('ffprobe_out'),
@@ -67,7 +67,7 @@ layout = [
     [sg.Output(size=(134, 20), font=("Consolas", 10))]],
     title='LOG')],
     
-    [sg.Button('Preview'),
+    [sg.Button('Preview', tooltip='Set cmd line'),
     sg.Button('Convert'),
     sg.SimpleButton('Exit', button_color=('white','firebrick3'))]
 ]
