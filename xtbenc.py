@@ -34,11 +34,11 @@ with open('presets/NVENC.csv', 'r') as csvfile:
 layout = [
     [sg.Text('Input', size=(7,1)),
     sg.InputText(key='_infile_', size=(116,1)),
-    sg.FileBrowse(size=(8,1))],
+    sg.FileBrowse(size=(10,1))],
     
     [sg.Text('Output', size=(7,1)),
     sg.InputText(key='_outfile_', size=(116,1)),
-    sg.SaveAs(size=(8,1))],
+    sg.SaveAs(size=(10,1))],
     
     [sg.Frame(
     layout=[
@@ -50,12 +50,12 @@ layout = [
     
     [sg.Frame(
     layout=[
-    [sg.Combo(values=cpu, default_value='', size=(134, 20), auto_size_text=False, key='_editor_')]],
+    [sg.Combo(values=cpu, default_value='', size=(136, 20), auto_size_text=False, key='_editor_')]],
     title='Extra Options (after input):')],
     
     [sg.Frame(
     layout=[
-    [sg.Multiline(key='-PREVIEW-', size=(134, 4))]],
+    [sg.Multiline(key='-PREVIEW-', size=(136, 4))]],
     title='Command Line (Preview/Edit):')],
     
     [sg.Button('ffprobe_in'),
@@ -64,7 +64,7 @@ layout = [
     
     [sg.Frame(
     layout=[
-    [sg.Output(size=(134, 20), font=("Consolas", 10))]],
+    [sg.Output(size=(136, 20))]],
     title='LOG')],
     
     [sg.Button('Preview', tooltip='Set cmd line'),
@@ -73,7 +73,7 @@ layout = [
 ]
 
 
-window = sg.Window('XTB Encoder', icon='presets/xtbenc.png') # icon='presets/xtbenc.ico' for Windows
+window = sg.Window('XTB Encoder', font=("Ubuntu mono", 12), icon='presets/xtbenc.png') # icon='presets/xtbenc.ico' for Windows
 
 window.Layout(layout)
 
