@@ -11,15 +11,28 @@ In Ubuntu if you get an error similar to: ImportError: No module named tkinter t
 sudo apt install python3-tk
 sudo apt install python3-testresources
 
+sudo apt install python3-venv
+
+python -m venv venv
+
+~/venv/bin/pip install pysimplegui
+
+~/venv/bin/pip install pyinstaller
+
+~/venv/bin/python xtbenc.py
+
+
 pip3 install pysimplegui
 
 pip3 install pyinstaller
 
+
 # Ubuntu
-pyinstaller --add-data="presets:presets" xtbenc.py
+~/venv/bin/pyinstaller --add-data="_internal/presets:presets" xtbenc.py
+
 
 # Windows
-pyinstaller --icon=xtbenc.ico --add-data="presets;presets" xtbenc.py
+pyinstaller --icon=xtbenc.ico --add-data="_internal/presets:presets" xtbenc.py
 ```
 
 # Usage

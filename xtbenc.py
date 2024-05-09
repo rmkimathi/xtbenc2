@@ -11,22 +11,22 @@ import csv
 sg.ChangeLookAndFeel('LightGreen')
 
 
-with open('presets/CPU.csv', 'r') as csvfile:
+with open('_internal/presets/CPU.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     cpu = [row[0] for row in csvreader]
 
 
-with open('presets/QSV.csv', 'r') as csvfile:
+with open('_internal/presets/QSV.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     qsv = [row[0] for row in csvreader]
 
 
-with open('presets/VAAPI.csv', 'r') as csvfile:
+with open('_internal/presets/VAAPI.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     vaapi = [row[0] for row in csvreader]
 
 
-with open('presets/NVENC.csv', 'r') as csvfile:
+with open('_internal/presets/NVENC.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     nvenc = [row[0] for row in csvreader]
 
@@ -73,7 +73,7 @@ layout = [
 ]
 
 
-window = sg.Window('XTB Encoder', font=("Ubuntu mono", 12), icon='presets/xtbenc.png') # icon='presets/xtbenc.ico' for Windows
+window = sg.Window('XTB Encoder', font=("Ubuntu mono", 12), icon='_internal/presets/xtbenc.png') # icon='_internal/presets/xtbenc.ico' for Windows
 
 window.Layout(layout)
 
