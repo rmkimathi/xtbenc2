@@ -2,29 +2,29 @@
 # coding: utf-8
 
 
-
 import PySimpleGUI as sg
 import subprocess
 import csv
 
 
 sg.ChangeLookAndFeel('LightGreen')
+sg.set_options(font=('Ubuntu Mono', 12))
+
+
+right_click_menu = ['', ['Copy', 'Paste', 'Select All', 'Cut']]
 
 
 with open('_internal/presets/CPU.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     cpu = [row[0] for row in csvreader]
 
-
 with open('_internal/presets/QSV.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     qsv = [row[0] for row in csvreader]
 
-
 with open('_internal/presets/VAAPI.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
     vaapi = [row[0] for row in csvreader]
-
 
 with open('_internal/presets/NVENC.csv', 'r') as csvfile:
     csvreader = csv.reader(csvfile)
@@ -60,11 +60,12 @@ layout = [
     
     [sg.Button('ffprobe_in'),
     sg.Button('ffprobe_out'),
-    sg.Button('encoders')],
+    sg.Button('encoders'),
+    sg.Button('Edit CSV')],
     
     [sg.Frame(
     layout=[
-    [sg.Output(size=(136, 20))]],
+    [sg.Output(size=(136, 20), key='-OUTPUT-', right_click_menu=right_click_menu)]],
     title='LOG')],
     
     [sg.Button('Preview', tooltip='Set cmd line'),
@@ -72,20 +73,65 @@ layout = [
     sg.SimpleButton('Exit', button_color=('white','firebrick3'))]
 ]
 
+window = sg.Window('XTB Encoder', layout, icon='_internal/presets/xtbenc.png') # icon='_internal/presets/xtbenc.ico' for Windows
 
-window = sg.Window('XTB Encoder', font=("Ubuntu mono", 12), icon='_internal/presets/xtbenc.png') # icon='_internal/presets/xtbenc.ico' for Windows
 
-window.Layout(layout)
+def edit_csv_window(file_path):
+    with open(file_path, newline='') as csvfile:
+        data = csvfile.read()
+
+    layout = [
+        [sg.Multiline(data, size=(136, 30), key='_text_', right_click_menu=right_click_menu)],
+        [sg.Button('Save'), sg.Button('Cancel')]
+    ]
+
+    edit_window = sg.Window(f'Editing {file_path}', layout, modal=True, icon='_internal/presets/xtbenc.png')
+
+    while True:
+        event, values = edit_window.read()
+        if event in (sg.WINDOW_CLOSED, 'Cancel'):
+            break
+        if event == 'Save':
+            new_data = values['_text_']
+            with open(file_path, 'w', newline='') as csvfile:
+                csvfile.write(new_data)
+            sg.popup(f'{file_path} saved successfully.', icon='_internal/presets/xtbenc.png')
+            break
+
+        if event in ['Copy', 'Paste', 'Select All', 'Cut']:
+            handle_right_click_event(event, edit_window, '_text_')
+
+    edit_window.close()
+
+
+def handle_right_click_event(event, window, element_key):
+    element = window[element_key]
+    if event == 'Copy':
+        window.TKroot.clipboard_clear()
+        window.TKroot.clipboard_append(element.Widget.selection_get())
+    elif event == 'Paste':
+        element.Widget.insert(sg.tk.INSERT, window.TKroot.clipboard_get())
+    elif event == 'Select All':
+        element.Widget.tag_add('sel', '1.0', 'end')
+    elif event == 'Cut':
+        window.TKroot.clipboard_clear()
+        window.TKroot.clipboard_append(element.Widget.selection_get())
+        element.Widget.delete('sel.first', 'sel.last')
 
 
 # Loop taking in user input
 while True:
-    (event, values) = window.Read(timeout=10)
+    (event, values) = window.Read()
 
     #print(event, values) #debug
     if event == 'Exit' or event is None:
         break           # Exit button clicked
 
+
+    if event == 'Edit CSV':
+        file_path = sg.popup_get_file('Select a CSV file to edit', file_types=(('CSV Files', '*.csv'),), initial_folder='_internal/presets', icon='_internal/presets/xtbenc.png')
+        if file_path:
+            edit_csv_window(file_path)
 
 
     video_in = values['_infile_']
@@ -175,6 +221,8 @@ while True:
         print( )
 
 
+    if event in ['Copy', 'Paste', 'Select All', 'Cut']:
+        handle_right_click_event(event, window, '-OUTPUT-')
 
 window.close()
 
