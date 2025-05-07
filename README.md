@@ -15,14 +15,14 @@ sudo apt install python3-venv
 
 python -m venv venv
 
-~/venv/bin/pip install pysimplegui
+~/venv/bin/pip install PySimpleGUI-4-foss
 
 ~/venv/bin/pip install pyinstaller
 
 ~/venv/bin/python xtbenc.py
 
 
-pip3 install pysimplegui
+pip3 install PySimpleGUI-4-foss
 
 pip3 install pyinstaller
 
