@@ -37,6 +37,7 @@ pyinstaller --icon=xtbenc.ico --add-data="_internal/presets:presets" xtbenc.py
 
 # PySimpleGUI-4-foss (Open-Source Fork)
 As of April 2025, installing PySimpleGUI version 4 on Ubuntu has become challenging due to significant changes in the project's distribution and licensing:
+
 ⚠️ Important Changes to PySimpleGUI
 
 Version 5 Transition: PySimpleGUI has transitioned to version 5, which now requires a license for use. While it's free for hobbyists, commercial use necessitates a paid license.
