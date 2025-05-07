@@ -57,6 +57,8 @@ ffmpeg.exe and ffprobe.exe should be in env path or drop your static binaries in
 [Download binaries ...](https://github.com/rmkimathi/xtbenc2/releases)
 
 # Reference
+[PySimpleGUI-4-foss](https://pypi.org/project/PySimpleGUI-4-foss)
+
 [PySimpleGUI](https://github.com/PySimpleGUI/PySimpleGUI)
 
 [Shlex](https://docs.python.org/3.6/library/shlex.html)
