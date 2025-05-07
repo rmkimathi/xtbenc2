@@ -35,6 +35,22 @@ pip3 install pyinstaller
 pyinstaller --icon=xtbenc.ico --add-data="_internal/presets:presets" xtbenc.py
 ```
 
+# PySimpleGUI-4-foss (Open-Source Fork)
+As of April 2025, installing PySimpleGUI version 4 on Ubuntu has become challenging due to significant changes in the project's distribution and licensing:
+⚠️ Important Changes to PySimpleGUI
+
+Version 5 Transition: PySimpleGUI has transitioned to version 5, which now requires a license for use. While it's free for hobbyists, commercial use necessitates a paid license.
+
+Discussions on Python.org
+
+Removal of Version 4 from PyPI: All version 4 releases have been removed from the Python Package Index (PyPI), making them unavailable for direct installation via pip.
+
+Reddit
+
+✅ Alternative: Install PySimpleGUI-4-foss (Open-Source Fork)
+
+To continue using the last open-source version of PySimpleGUI, you can install the PySimpleGUI-4-foss package, which is a community-maintained fork of version 4.60.4.1
+
 # Usage
 ffmpeg.exe and ffprobe.exe should be in env path or drop your static binaries in the same folder as xtbenc. ffmpeg arguments can be typed in directly in the "Extra Options" combo or permanently added by editing the csv files in the presets folder.
 
