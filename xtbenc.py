@@ -84,7 +84,7 @@ layout = [
                        sg.Radio('NVENC', "RADIO1", key='_NVENC', enable_events=True)]],
               title='CODEC', title_color='red', relief=sg.RELIEF_SUNKEN, expand_x=True)],
               
-    [sg.Frame(layout=[[sg.Combo(values=cpu, default_value='', size=(136, 20), key='_editor_', expand_x=True)]], 
+    [sg.Frame(layout=[[sg.Combo(values=cpu, default_value='-i {input} -c copy -map_metadata -1 {output_dir}', size=(136, 20), key='_editor_', expand_x=True)]], 
               title='Templates:', expand_x=True)],
               
     [sg.Frame(layout=[[sg.Multiline(key='-PREVIEW-', size=(100, 4), expand_x=True)]], 
