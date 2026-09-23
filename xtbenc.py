@@ -8,24 +8,51 @@ import shlex
 import os
 
 sg.ChangeLookAndFeel('LightGreen')
-sg.set_options(font=('Ubuntu Mono', 12))
+sg.set_options(font=('Consolas', 12))
 
 right_click_menu = ['', ['Copy', 'Paste', 'Select All', 'Cut']]
 
 cpu, qsv, vaapi, nvenc = [], [], [], []
+CONFIG_FILE = "config.txt"
+
+def load_saved_config():
+    """Reads the saved default input file and output directory from config.txt if it exists."""
+    saved_infile = ''
+    saved_outdir = ''
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                lines = f.read().splitlines()
+                if len(lines) >= 1:
+                    infile_path = lines[0].strip()
+                    if os.path.isfile(infile_path) or infile_path == '':
+                        saved_infile = infile_path
+                if len(lines) >= 2:
+                    outdir_path = lines[1].strip()
+                    if os.path.isdir(outdir_path) or outdir_path == '':
+                        saved_outdir = outdir_path
+        except Exception:
+            pass
+    return saved_infile, saved_outdir
+
+def save_config(infile_path, outdir_path):
+    """Saves the input path and output directory to config.txt inside the working directory."""
+    try:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+            f.write(f"{infile_path.strip()}\n{outdir_path.strip()}")
+    except Exception:
+        pass
 
 def load_csv_preset(file_path):
     """Loads CSV files, extracting raw text and cleaning up structural quote configurations."""
     if os.path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as csvfile:
             cleaned_rows = []
-            # Using csv.reader natively handles the primary outer layer of double quotes
             for row in csv.reader(csvfile):
                 if not row or not row[0]:
                     continue
                 item = row[0].strip()
                 
-                # Failsafe: Remove any extra literal string wrappers if they leak past the reader
                 if item.startswith('[') and item.endswith(']'):
                     item = item[1:-1].strip()
                 if (item.startswith("'") and item.endswith("'")) or (item.startswith('"') and item.endswith('"')):
@@ -43,9 +70,13 @@ nvenc = load_csv_preset('_internal/presets/NVENC.csv')
 
 info_commands = ['-encoders', '-decoders', '-buildconf', '-h full', '-codecs', '-formats', '-protocols', '-pix_fmts']
 
+# Load the saved configuration values on startup
+initial_infile, initial_outdir = load_saved_config()
+
 layout = [
-    [sg.Text('Input', size=(7,1)), sg.InputText(key='_infile_', expand_x=True), sg.FileBrowse(size=(10,1))],
-    [sg.Text('Output', size=(7,1)), sg.InputText(key='_outfile_', expand_x=True), sg.SaveAs(size=(10,1))],
+    [sg.Text('Input', size=(11,1)), sg.InputText(default_text=initial_infile, key='_infile_', enable_events=True, expand_x=True), sg.FileBrowse(size=(12,1))],
+    [sg.Text('Output Dir', size=(11,1)), sg.InputText(default_text=initial_outdir, key='_outdir_', enable_events=True, expand_x=True), sg.FolderBrowse(size=(12,1))],
+    [sg.Text('Output File', size=(11,1)), sg.InputText(default_text='out.mp4', key='_outfilename_', expand_x=True)],
     
     [sg.Frame(layout=[[sg.Radio('CPU', "RADIO1", default=True, key='_CPU', enable_events=True),
                        sg.Radio('QSV', "RADIO1", key='_QSV', enable_events=True),
@@ -54,7 +85,7 @@ layout = [
               title='CODEC', title_color='red', relief=sg.RELIEF_SUNKEN, expand_x=True)],
               
     [sg.Frame(layout=[[sg.Combo(values=cpu, default_value='', size=(136, 20), key='_editor_', expand_x=True)]], 
-              title='Extra Options (after input):', expand_x=True)],
+              title='Templates:', expand_x=True)],
               
     [sg.Frame(layout=[[sg.Multiline(key='-PREVIEW-', size=(100, 4), expand_x=True)]], 
               title='Command Line (Preview/Edit):', expand_x=True)],
@@ -82,6 +113,7 @@ def drop_input_file(event):
     if file_path.startswith('{') and file_path.endswith('}'):
         file_path = file_path[1:-1]
     window['_infile_'].update(file_path)
+    save_config(file_path, window['_outdir_'].get())
 
 try:
     window.TKroot.tk.call('package', 'require', 'tkdnd')
@@ -138,12 +170,26 @@ while True:
         file_path = sg.popup_get_file('Select CSV', file_types=(('CSV', '*.csv'),), initial_folder='_internal/presets')
         if file_path: edit_csv_window(file_path)
 
+    if event in ('_infile_', '_outdir_') and values:
+        save_config(values['_infile_'], values['_outdir_'])
+
     if values:
-        video_in, video_out = values['_infile_'], values['_outfile_']
-        myargs = values['_editor_']
-        cmd1 = f'ffmpeg -v verbose -y -i "{video_in}" {myargs} "{video_out}"' if not values['_VAAPI'] else f'ffmpeg -v verbose -y -vaapi_device "/dev/dri/renderD128" -i "{video_in}" {myargs} "{video_out}"'
+        video_in, output_dir = values['_infile_'], values['_outdir_']
+        filename = values['_outfilename_'].strip()
+        raw_args = values['_editor_']
+        
+        target_out = os.path.join(output_dir, filename) if (output_dir and filename) else ''
+        
+        quoted_in = f'"{video_in}"' if video_in else '""'
+        quoted_out = f'"{target_out}"' if target_out else '""'
+        
+        rendered_args = raw_args.replace('{input}', quoted_in).replace('{output_dir}', quoted_out)
+        cmd1 = f'ffmpeg -v verbose -hide_banner -y {rendered_args}'
+        
+        if event not in ('Run', 'Run Info', 'ffprobe_in', 'ffprobe_out'):
+            window['-PREVIEW-'].update(cmd1)
     else:
-        video_in, video_out, myargs, cmd1 = '', '', '', ''
+        video_in, output_dir, filename, cmd1 = '', '', '', ''
 
     if event == '_CPU': window['_editor_'].Update(values=cpu, set_to_index=0)
     if event == '_QSV': window['_editor_'].Update(values=qsv, set_to_index=0)
@@ -161,71 +207,57 @@ while True:
         res = subprocess.run(['ffprobe', '-hide_banner', video_in], stderr=subprocess.PIPE, text=True, startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         print(res.stderr, '\n\n**********\n')
 
-    if event == 'ffprobe_out' and video_out:
-        print('MEDIA INFO (Output):')
-        res = subprocess.run(['ffprobe', '-hide_banner', video_out], stderr=subprocess.PIPE, text=True, startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
-        print(res.stderr, '\n\n**********\n')
+    if event == 'ffprobe_out' and output_dir and filename:
+        print('MEDIA INFO (Output File):')
+        out_file = os.path.join(output_dir, filename)
+        if os.path.exists(out_file):
+            res = subprocess.run(['ffprobe', '-hide_banner', out_file], stderr=subprocess.PIPE, text=True, startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            print(res.stderr, '\n\n**********\n')
+        else:
+            print(f'[INFO] "{filename}" not found in {output_dir} yet.\n\n**********\n')
 
-    if event == 'Run Info' and values:
-        info_flag = values['-INFO-CMD-'].strip()
-        filter_term = values['-FILTER-'].strip().lower()
+    if event == 'Run Info':
+        info_cmd = values['-INFO-CMD-']
+        filter_text = values['-FILTER-'].strip().lower()
+        print(f'FFMPEG DIAGNOSTIC ({info_cmd}):')
         
-        if info_flag:
-            parsed_args = shlex.split(info_flag)
-            full_command = ['ffmpeg', '-hide_banner'] + parsed_args
-            
-            if filter_term:
-                print(f'RUNNING FFMPEG DIAGNOSTIC: {" ".join(full_command)} (Filtered for: "{filter_term}")')
-            else:
-                print(f'RUNNING FFMPEG DIAGNOSTIC: {" ".join(full_command)}')
-            
-            res = subprocess.run(full_command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, startupinfo=startupinfo, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
-            
-            if filter_term:
-                filtered_lines = [line for line in res.stdout.splitlines() if filter_term in line.lower()]
-                if filtered_lines:
-                    print('\n'.join(filtered_lines))
-                else:
-                    print(f'[INFO] No matching entries found containing "{filter_term}".')
-            else:
-                print(res.stdout)
-                
-            print('\n**********\n')
-
-    if event == 'Preview':
-        window['-PREVIEW-'].update(cmd1)
+        # Build the command base and dynamically extend with space-split arguments
+        cmd_parts = ['ffmpeg', '-hide_banner'] + info_cmd.split()
+        
+        res = subprocess.run(
+            cmd_parts, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT, 
+            text=True, 
+            startupinfo=startupinfo, 
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        )
+        
+        if filter_text:
+            filtered_lines = [line for line in res.stdout.splitlines() if filter_text in line.lower()]
+            print('\n'.join(filtered_lines) if filtered_lines else '[INFO] No matching items found.')
+        else:
+            print(res.stdout)
+        print('\n**********\n')
 
     if event == 'Run' and not active_process:
-        ffmpeg_cmd_str = window['-PREVIEW-'].get().strip()
-        
-        # Strip out literal brackets if they sneak into the input field
-        if ffmpeg_cmd_str.startswith('[') and ffmpeg_cmd_str.endswith(']'):
-            ffmpeg_cmd_str = ffmpeg_cmd_str[1:-1].strip()
-            
-        # Strip string-wrapped quotes if they encapsulate the entire argument string
-        if (ffmpeg_cmd_str.startswith("'") and ffmpeg_cmd_str.endswith("'")) or (ffmpeg_cmd_str.startswith('"') and ffmpeg_cmd_str.endswith('"')):
-            ffmpeg_cmd_str = ffmpeg_cmd_str[1:-1].strip()
-
-        if not ffmpeg_cmd_str:
-            print("[ERROR] Set up valid arguments before running.")
-            continue
-            
-        print('INPUT:', video_in)
-        print('Executing:', ffmpeg_cmd_str, '\n')
-        try:
-            active_process = subprocess.Popen(
-                shlex.split(ffmpeg_cmd_str), 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
-                text=True, 
-                bufsize=1,
-                startupinfo=startupinfo,
-                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-            )
-            window['Cancel Run'].update(disabled=False)
-            window['Run'].update(disabled=True)
-        except Exception as e:
-            print(f"Error starting process: {e}\n")
-            active_process = None
-
-window.close()
+        final_cmd = values['-PREVIEW-'].strip()
+        if final_cmd:
+            print(f"Executing: {final_cmd}\n")
+            try:
+                cmd_parts = shlex.split(final_cmd)
+                active_process = subprocess.Popen(
+                    cmd_parts,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    bufsize=1,
+                    universal_newlines=True,
+                    startupinfo=startupinfo,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                )
+                window['Run'].update(disabled=True)
+                window['Cancel Run'].update(disabled=False)
+            except Exception as e:
+                print(f"[ERROR] Failed to start process: {e}\n")
+                active_process = None
