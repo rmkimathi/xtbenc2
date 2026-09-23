@@ -1,3 +1,5 @@
+"-i {input} -c copy -map_metadata -1 {output_dir}"
+"..."
 "-loop 1 -i {input} -i {input} -c:v libx264 -crf 32 -r 30 -g 30 -tune stillimage -pix_fmt yuv420p -vf scale=720:1280 -c:a aac -b:a 128k -shortest {output_dir}"
 "-i {input} -c:v libx264 -preset superfast -crf 28 -g 25 {output_dir}"
 "-i {input} -c:v libx264 -preset medium -crf 23 -g 25 {output_dir}"
