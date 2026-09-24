@@ -32,7 +32,7 @@ pip3 install pyinstaller
 
 
 # Windows
-pyinstaller --icon=xtbenc.ico --add-data="_internal/presets:presets" xtbenc.py
+pyinstaller --noconsole --icon=xtbenc.ico --add-data="_internal/presets;presets" xtbenc.py
 ```
 
 # PySimpleGUI-4-foss (Open-Source Fork)
