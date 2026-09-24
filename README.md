@@ -15,16 +15,19 @@ sudo apt install python3-venv
 
 python -m venv venv
 
-~/venv/bin/pip install PySimpleGUI-4-foss
+~/venv/bin/pip install PySimpleGUI
+
+~/venv/bin/pip install --upgrade psgdnd
+
+~/venv/bin/pip install --upgrade https://github.com/PySimpleGUI/psgdnd/zipball/main
 
 ~/venv/bin/pip install pyinstaller
 
 ~/venv/bin/python xtbenc.py
 
 
-pip3 install PySimpleGUI-4-foss
-
-pip3 install pyinstaller
+# Back-up option:
+~/venv/bin/pip install PySimpleGUI-4-foss
 
 
 # Ubuntu
