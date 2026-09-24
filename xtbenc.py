@@ -68,6 +68,13 @@ qsv = load_csv_preset('_internal/presets/QSV.csv')
 vaapi = load_csv_preset('_internal/presets/VAAPI.csv')
 nvenc = load_csv_preset('_internal/presets/NVENC.csv')
 
+PRESET_FILES = {
+    'CPU': '_internal/presets/CPU.csv',
+    'QSV': '_internal/presets/QSV.csv',
+    'VAAPI': '_internal/presets/VAAPI.csv',
+    'NVENC': '_internal/presets/NVENC.csv',
+}
+
 info_commands = ['-encoders', '-decoders', '-buildconf', '-h full', '-codecs', '-formats', '-protocols', '-pix_fmts']
 
 # Load the saved configuration values on startup
@@ -133,9 +140,51 @@ def edit_csv_window(file_path):
         if event == 'Save':
             with open(file_path, 'w', newline='') as csvfile:
                 csvfile.write(values['_text_'])
-            sg.popup(f'{file_path} saved.')
+
+            filename = os.path.basename(file_path).upper()
+
+            codec = {
+                'CPU.CSV': 'CPU',
+                'QSV.CSV': 'QSV',
+                'VAAPI.CSV': 'VAAPI',
+                'NVENC.CSV': 'NVENC'
+            }.get(filename)
+
+            if codec:
+                reload_preset(codec)
+
+            sg.popup(f'{file_path} saved and presets reloaded.')
             break
     edit_window.close()
+
+
+def reload_preset(codec):
+    """Reload a codec preset CSV and refresh the Combo if it is active."""
+    global cpu, qsv, vaapi, nvenc
+
+    presets = load_csv_preset(PRESET_FILES[codec])
+
+    if codec == 'CPU':
+        cpu = presets
+        active = window['_CPU'].get()
+    elif codec == 'QSV':
+        qsv = presets
+        active = window['_QSV'].get()
+    elif codec == 'VAAPI':
+        vaapi = presets
+        active = window['_VAAPI'].get()
+    elif codec == 'NVENC':
+        nvenc = presets
+        active = window['_NVENC'].get()
+    else:
+        return
+
+    if active:
+        window['_editor_'].update(
+            values=presets,
+            value=presets[0] if presets else ''
+        )
+
 
 active_process = None
 
