@@ -6,6 +6,7 @@ import subprocess
 import csv
 import shlex
 import os
+import psgdnd
 
 sg.ChangeLookAndFeel('LightGreen')
 sg.set_options(font=('Consolas', 12))
@@ -114,6 +115,8 @@ layout = [
 ]
 
 window = sg.Window('XTB Encoder', layout, finalize=True, resizable=True, icon='_internal/presets/xtbenc.png')
+
+psgdnd.register_element_dnd(window['_infile_'], window, psgdnd.DROP_TYPE_FILES)   # DROP_TYPE_TEXT / DROP_TYPE_FILES / DROP_TYPE_ALL
 
 def drop_input_file(event):
     file_path = event.data
