@@ -32,6 +32,8 @@ pip3 install pyinstaller
 
 
 # Windows
+window = sg.Window('XTB Encoder', layout, finalize=True, resizable=True, icon='_internal/presets/xtbenc.ico')
+
 pyinstaller --noconsole --icon=xtbenc.ico --add-data="_internal/presets;presets" xtbenc.py
 ```
 
