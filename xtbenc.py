@@ -1,17 +1,26 @@
 #!/usr/bin/python3
 # coding: utf-8
 
-import PySimpleGUI as sg
-import subprocess
+import os
 import csv
 import shlex
-import os
+import subprocess
+import PySimpleGUI as sg
 import psgdnd
 
-sg.ChangeLookAndFeel('LightGreen')
+from about import show_about_window  
+from editcsv import edit_csv_window  # Import decoupled function
+
+sg.theme('LightGreen')
 sg.set_options(font=('Consolas', 12))
 
-right_click_menu = ['', ['Copy', 'Paste', 'Select All', 'Cut']]
+# Define the menu structure
+menu_def = [
+    ['&File', ['E&xit']],
+    ['&Help', ['&About']]
+]
+
+right_click_menu = ['', ['Select All', 'Copy']]
 
 cpu, qsv, vaapi, nvenc = [], [], [], []
 CONFIG_FILE = "config.txt"
@@ -64,11 +73,6 @@ def load_csv_preset(file_path):
             return cleaned_rows if cleaned_rows else ['']
     return ['']
 
-cpu = load_csv_preset('_internal/presets/CPU.csv')
-qsv = load_csv_preset('_internal/presets/QSV.csv')
-vaapi = load_csv_preset('_internal/presets/VAAPI.csv')
-nvenc = load_csv_preset('_internal/presets/NVENC.csv')
-
 PRESET_FILES = {
     'CPU': '_internal/presets/CPU.csv',
     'QSV': '_internal/presets/QSV.csv',
@@ -76,12 +80,18 @@ PRESET_FILES = {
     'NVENC': '_internal/presets/NVENC.csv',
 }
 
+cpu = load_csv_preset(PRESET_FILES['CPU'])
+qsv = load_csv_preset(PRESET_FILES['QSV'])
+vaapi = load_csv_preset(PRESET_FILES['VAAPI'])
+nvenc = load_csv_preset(PRESET_FILES['NVENC'])
+
 info_commands = ['-encoders', '-decoders', '-buildconf', '-h full', '-codecs', '-formats', '-protocols', '-pix_fmts']
 
 # Load the saved configuration values on startup
 initial_infile, initial_outdir = load_saved_config()
 
 layout = [
+    [sg.Menu(menu_def)],
     [sg.Text('Input', size=(11,1)), sg.InputText(default_text=initial_infile, key='_infile_', enable_events=True, expand_x=True), sg.FileBrowse(size=(12,1))],
     [sg.Text('Output Dir', size=(11,1)), sg.InputText(default_text=initial_outdir, key='_outdir_', enable_events=True, expand_x=True), sg.FolderBrowse(size=(12,1))],
     [sg.Text('Output File', size=(11,1)), sg.InputText(default_text='out.mp4', key='_outfilename_', expand_x=True)],
@@ -111,12 +121,12 @@ layout = [
               title='LOG', expand_x=True, expand_y=True)],
               
     [sg.Button('Preview'), sg.Button('Run'), sg.Button('Cancel Run', button_color=('white', 'orange'), disabled=True), 
-     sg.Button('Clear', button_color=('white', 'blue')), sg.SimpleButton('Exit', button_color=('white','firebrick3'))]
+     sg.Button('Clear', button_color=('white', 'blue')), sg.Button('Exit', button_color=('white','firebrick3'))]
 ]
 
-window = sg.Window('XTB Encoder', layout, finalize=True, resizable=True, icon='_internal/presets/xtbenc.png')
+window = sg.Window('XTB Encoder', layout, finalize=True, resizable=True, icon='_internal/presets/xtbenc.ico')
 
-psgdnd.register_element_dnd(window['_infile_'], window, psgdnd.DROP_TYPE_FILES)   # DROP_TYPE_TEXT / DROP_TYPE_FILES / DROP_TYPE_ALL
+psgdnd.register_element_dnd(window['_infile_'], window, psgdnd.DROP_TYPE_FILES)
 
 def drop_input_file(event):
     file_path = event.data
@@ -131,35 +141,6 @@ try:
     window.TKroot.dnd_bind('<<Drop>>', drop_input_file)
 except Exception:
     pass
-
-def edit_csv_window(file_path):
-    with open(file_path, newline='') as csvfile:
-        data = csvfile.read()
-    layout = [[sg.Multiline(data, expand_x=True, expand_y=True, key='_text_', right_click_menu=right_click_menu)], [sg.Button('Save'), sg.Button('Cancel')]]
-    edit_window = sg.Window(f'Editing {file_path}', layout, modal=True, resizable=True, size=(800, 600))
-    while True:
-        event, values = edit_window.read()
-        if event in (sg.WINDOW_CLOSED, 'Cancel'): break
-        if event == 'Save':
-            with open(file_path, 'w', newline='') as csvfile:
-                csvfile.write(values['_text_'])
-
-            filename = os.path.basename(file_path).upper()
-
-            codec = {
-                'CPU.CSV': 'CPU',
-                'QSV.CSV': 'QSV',
-                'VAAPI.CSV': 'VAAPI',
-                'NVENC.CSV': 'NVENC'
-            }.get(filename)
-
-            if codec:
-                reload_preset(codec)
-
-            sg.popup(f'{file_path} saved and presets reloaded.')
-            break
-    edit_window.close()
-
 
 def reload_preset(codec):
     """Reload a codec preset CSV and refresh the Combo if it is active."""
@@ -188,21 +169,39 @@ def reload_preset(codec):
             value=presets[0] if presets else ''
         )
 
-
 active_process = None
 
 while True:
-    event, values = window.Read(timeout=100 if active_process else None)
-    if event in ('Exit', None):
-        if active_process: active_process.kill()
+    # Modern lower-case syntax used for window.read()
+    event, values = window.read(timeout=100 if active_process else None)
+    if event in ('Exit', None, sg.WIN_CLOSED):
+        if active_process: 
+            active_process.kill()
         break           
+
+    # --- HANDLE RIGHT-CLICK MENU ---
+    elif event == 'Select All':
+        window['-OUTPUT-'].Widget.tag_add("sel", "1.0", "end")
+        
+    elif event == 'Copy':
+        try:
+            selected_text = window['-OUTPUT-'].Widget.selection_get()
+            window.TKroot.clipboard_clear()
+            window.TKroot.clipboard_append(selected_text)
+        except Exception:
+            pass
+    
+    elif event == 'About':
+        show_about_window()  
 
     if active_process:
         line = active_process.stderr.readline()
-        if line: print(line.strip())
+        if line: 
+            print(line.strip())
         if active_process.poll() is not None:
             remaining_logs = active_process.stderr.read()
-            if remaining_logs: print(remaining_logs.strip())
+            if remaining_logs: 
+                print(remaining_logs.strip())
             print(f'\nProcess finished with returncode: {active_process.returncode}\n\n**********\n')
             active_process = None
             window['Cancel Run'].update(disabled=True)
@@ -219,8 +218,10 @@ while True:
         window['-OUTPUT-'].update('')
 
     if event == 'Edit CSV':
-        file_path = sg.popup_get_file('Select CSV', file_types=(('CSV', '*.csv'),), initial_folder='_internal/presets')
-        if file_path: edit_csv_window(file_path)
+        file_path = sg.popup_get_file('Select CSV', file_types=(('CSV', '*.csv'),), initial_folder='_internal/presets', icon='_internal/presets/xtbenc.ico')
+        if file_path: 
+            # Call decoupled UI frame and feed our reload logic pointer inside as a callback context
+            edit_csv_window(file_path, reload_preset)
 
     if event in ('_infile_', '_outdir_') and values:
         save_config(values['_infile_'], values['_outdir_'])
@@ -243,10 +244,11 @@ while True:
     else:
         video_in, output_dir, filename, cmd1 = '', '', '', ''
 
-    if event == '_CPU': window['_editor_'].Update(values=cpu, set_to_index=0)
-    if event == '_QSV': window['_editor_'].Update(values=qsv, set_to_index=0)
-    if event == '_VAAPI': window['_editor_'].Update(values=vaapi, set_to_index=0)
-    if event == '_NVENC': window['_editor_'].Update(values=nvenc, set_to_index=0)
+    # Modern lower-case syntax used for element.update()
+    if event == '_CPU': window['_editor_'].update(values=cpu, set_to_index=0)
+    if event == '_QSV': window['_editor_'].update(values=qsv, set_to_index=0)
+    if event == '_VAAPI': window['_editor_'].update(values=vaapi, set_to_index=0)
+    if event == '_NVENC': window['_editor_'].update(values=nvenc, set_to_index=0)
 
     startupinfo = None
     if os.name == 'nt':
@@ -272,19 +274,15 @@ while True:
         info_cmd = values['-INFO-CMD-']
         filter_text = values['-FILTER-'].strip().lower()
         print(f'FFMPEG DIAGNOSTIC ({info_cmd}):')
-        
-        # Build the command base and dynamically extend with space-split arguments
         cmd_parts = ['ffmpeg', '-hide_banner'] + info_cmd.split()
-        
         res = subprocess.run(
-            cmd_parts, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.STDOUT, 
-            text=True, 
-            startupinfo=startupinfo, 
+            cmd_parts,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            startupinfo=startupinfo,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         )
-        
         if filter_text:
             filtered_lines = [line for line in res.stdout.splitlines() if filter_text in line.lower()]
             print('\n'.join(filtered_lines) if filtered_lines else '[INFO] No matching items found.')
@@ -313,3 +311,5 @@ while True:
             except Exception as e:
                 print(f"[ERROR] Failed to start process: {e}\n")
                 active_process = None
+
+window.close()
